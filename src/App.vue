@@ -68,6 +68,9 @@ import { defineComponent, ref } from 'vue';
 import axios from 'axios';
 import cameraUtils from './camera-utils'; 
 
+const isLocal = window.location.hostname === 'localhost';
+const baseURL = isLocal ? 'http://localhost:5008' : 'https://check-my-style-0e31acc03376.herokuapp.com';
+
 export default defineComponent({
   setup() {
     const rating = ref('');
@@ -147,7 +150,7 @@ export default defineComponent({
       }
 
       try {
-        const response = await axios.post('http://localhost:5008/api/rate-outfit', formData, {
+        const response = await axios.post(`${baseURL}/api/rate-outfit`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
