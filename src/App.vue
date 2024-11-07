@@ -14,6 +14,16 @@
       <img :src="imageUrl" alt="Outfit Image" style="width: 200px; height: 200px; object-fit: cover;">
     </div>
     <div>
+      <label for="occasion">Occasion-Based Suggestions: </label>
+      <select v-model="selectedOccasion" id="occasion">
+        <option value="">Select Occasion</option>
+        <option value="Casual">Casual</option>
+        <option value="Formal">Formal</option>
+        <option value="Date Night">Date Night</option>
+        <!-- Add more options as needed -->
+      </select>
+    </div>
+    <div>
       <button @click="getOutfitRating">Check Fit</button>
     </div>
     <!-- Output the rating and analysis -->
@@ -64,6 +74,8 @@ export default defineComponent({
     const isLoading = ref(false);
     const analysisType = ref('quick'); // New ref for analysis type
     const lastImageFile = ref<File | null>(null); // New ref to store the last uploaded image
+    const lastOccasion = ref(''); // New ref to store the last selected occasion
+    const selectedOccasion = ref(''); // New ref for selected occasion
 
     const onFileChange = (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0] || null;
@@ -101,15 +113,17 @@ export default defineComponent({
     };
 
     const getOutfitRating = async () => {
-      if (imageFile.value && imageFile.value === lastImageFile.value) {
-        console.log("Image did not change, not triggering another rating.");
+      if (rating.value && imageFile.value === lastImageFile.value && selectedOccasion.value === lastOccasion.value) {
+        console.log("Image and occasion did not change, not triggering another rating.");
         return;
       }
 
       const formData = new FormData();
       if (imageFile.value) {
         formData.append('image', imageFile.value);
+        formData.append('occasion', selectedOccasion.value); // Include occasion in the form data
         lastImageFile.value = imageFile.value; // Update the last uploaded image
+        lastOccasion.value = selectedOccasion.value; // Update the last selected occasion
       }
 
       const response = await axios.post('http://localhost:5008/api/rate-outfit', formData, {
@@ -132,7 +146,7 @@ export default defineComponent({
       }
     };
 
-    return { rating, quickTips, detailedAnalysis, imageUrl, onFileChange, triggerFileInput, toggleCamera, takePhoto, getOutfitRating, fileInput, isCameraOpen, isPhotoTaken, isShotPhoto, isLoading, analysisType };
+    return { rating, quickTips, detailedAnalysis, imageUrl, onFileChange, triggerFileInput, toggleCamera, takePhoto, getOutfitRating, fileInput, isCameraOpen, isPhotoTaken, isShotPhoto, isLoading, analysisType, selectedOccasion };
   }
 });
 </script>
