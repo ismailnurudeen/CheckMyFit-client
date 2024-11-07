@@ -29,16 +29,18 @@
     <!-- Output the rating and analysis -->
     <div v-if="rating">
       <h1 class="rating">{{ rating }}/10</h1>
-
       <div>
-      <label>
-        <input type="radio" v-model="analysisType" value="quick" /> Quick Tip
-      </label>
-      <label>
-        <input type="radio" v-model="analysisType" value="detailed" /> Detailed Analysis
-      </label>
-    </div>
-    
+        <h3>Outfit Description:</h3>
+        <p>{{ outfitDescription }}</p>
+      </div>
+      <div>
+        <label>
+          <input type="radio" v-model="analysisType" value="quick" /> Quick Tip
+        </label>
+        <label>
+          <input type="radio" v-model="analysisType" value="detailed" /> Detailed Analysis
+        </label>
+      </div>
       <div v-if="analysisType === 'quick' && quickTips.length">
         <h3>Quick Tips:</h3>
         <ul>
@@ -65,6 +67,7 @@ export default defineComponent({
     const rating = ref('');
     const quickTips = ref<string[]>([]);
     const detailedAnalysis = ref<{ color: string, fit: string, accessories: string } | null>(null);
+    const outfitDescription = ref(''); // New ref for outfit description
     const imageFile = ref<File | null>(null);
     const imageUrl = ref<string | null>(null);
     const fileInput = ref<HTMLInputElement | null>(null);
@@ -135,18 +138,16 @@ export default defineComponent({
       const data = response.data;
       console.log("API Response:", data);
       rating.value = data.rating;
-      console.log("Rating:", rating.value);
+      outfitDescription.value = data.description; // Set the outfit description
       if (data.quick_tips) {
         quickTips.value = data.quick_tips;
-        console.log("Quick Tips:", quickTips.value);
       }
       if (data.detailed_analysis) {
         detailedAnalysis.value = data.detailed_analysis;
-        console.log("Detailed Analysis:", detailedAnalysis.value);
       }
     };
 
-    return { rating, quickTips, detailedAnalysis, imageUrl, onFileChange, triggerFileInput, toggleCamera, takePhoto, getOutfitRating, fileInput, isCameraOpen, isPhotoTaken, isShotPhoto, isLoading, analysisType, selectedOccasion };
+    return { rating, quickTips, detailedAnalysis, outfitDescription, imageUrl, onFileChange, triggerFileInput, toggleCamera, takePhoto, getOutfitRating, fileInput, isCameraOpen, isPhotoTaken, isShotPhoto, isLoading, analysisType, selectedOccasion };
   }
 });
 </script>
