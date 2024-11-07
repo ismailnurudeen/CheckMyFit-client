@@ -26,6 +26,12 @@
     <div>
       <button @click="getOutfitRating">Check Fit</button>
     </div>
+
+    <div v-if="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Analysing your outfit...</p>
+    </div>
+
     <!-- Output the rating and analysis -->
     <div v-if="rating">
       <h1 class="rating">{{ rating }}/10</h1>
@@ -85,7 +91,15 @@ export default defineComponent({
       if (file) {
         imageFile.value = file;
         imageUrl.value = URL.createObjectURL(file);
+        clearPreviousOutput(); // Clear previous output when a new image is uploaded
       }
+    };
+
+    const clearPreviousOutput = () => {
+      rating.value = '';
+      quickTips.value = [];
+      detailedAnalysis.value = null;
+      outfitDescription.value = '';
     };
 
     const triggerFileInput = () => {
@@ -107,6 +121,7 @@ export default defineComponent({
     const takePhoto = () => {
       if (isCameraOpen.value && !isPhotoTaken.value) {
         cameraUtils.takePhoto(isPhotoTaken, isShotPhoto, imageFile, imageUrl, isCameraOpen);
+        clearPreviousOutput(); // Clear previous output when a new photo is taken
       } else {
         isPhotoTaken.value = false;
         isShotPhoto.value = false;
@@ -121,6 +136,8 @@ export default defineComponent({
         return;
       }
 
+      isLoading.value = true; // Start loading
+
       const formData = new FormData();
       if (imageFile.value) {
         formData.append('image', imageFile.value);
@@ -129,21 +146,27 @@ export default defineComponent({
         lastOccasion.value = selectedOccasion.value; // Update the last selected occasion
       }
 
-      const response = await axios.post('http://localhost:5008/api/rate-outfit', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      try {
+        const response = await axios.post('http://localhost:5008/api/rate-outfit', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
 
-      const data = response.data;
-      console.log("API Response:", data);
-      rating.value = data.rating;
-      outfitDescription.value = data.description; // Set the outfit description
-      if (data.quick_tips) {
-        quickTips.value = data.quick_tips;
-      }
-      if (data.detailed_analysis) {
-        detailedAnalysis.value = data.detailed_analysis;
+        const data = response.data;
+        console.log("API Response:", data);
+        rating.value = data.rating;
+        outfitDescription.value = data.description; // Set the outfit description
+        if (data.quick_tips) {
+          quickTips.value = data.quick_tips;
+        }
+        if (data.detailed_analysis) {
+          detailedAnalysis.value = data.detailed_analysis;
+        }
+      } catch (error) {
+        console.error("Error fetching outfit rating:", error);
+      } finally {
+        isLoading.value = false; // Stop loading
       }
     };
 
@@ -170,5 +193,25 @@ img {
   font-size: 4em;
   font-weight: bold;
   color: #ff6347; /* Tomato color for emphasis */
+}
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #ff6347;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
